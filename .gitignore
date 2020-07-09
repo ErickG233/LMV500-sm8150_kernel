@@ -126,3 +126,4 @@ all.config
 # fetched Android config fragments
 kernel/configs/android-*.cfg
 /output
+/out
