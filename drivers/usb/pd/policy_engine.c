@@ -1166,7 +1166,7 @@ static int pd_select_pdo(struct usbpd *pd, int pdo_pos, int uv, int ua)
 	}
 
 	/* Can't sink more than 5V if VCONN is sourced from the VBUS input */
-	if (pd->vconn_enabled && !pd->vconn_is_external &&
+	if (pd->vconn_enabled &&
 			pd->requested_voltage > 5000000)
 #ifdef CONFIG_LGE_USB
 	{
@@ -1266,7 +1266,7 @@ eval_src_caps:
 			 * Can't sink more than 5V if VCONN is sourced from the
 			 * VBUS input
 			 */
-			if (pd->vconn_enabled && !pd->vconn_is_external &&
+			if (pd->vconn_enabled &&
 			    ((PD_SRC_PDO_FIXED_VOLTAGE(pdo) * 50000) > 5000000))
 				break;
 
@@ -1299,7 +1299,6 @@ eval_src_caps:
 				 * from the VBUS input
 				 */
 				if (pd->vconn_enabled &&
-				    !pd->vconn_is_external &&
 				    (sink_uv > 5000000))
 					continue;
 
