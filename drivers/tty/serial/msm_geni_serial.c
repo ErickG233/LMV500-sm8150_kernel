@@ -204,7 +204,7 @@ static unsigned int msm_geni_serial_tx_empty(struct uart_port *port);
 static int msm_geni_serial_power_on(struct uart_port *uport);
 static void msm_geni_serial_power_off(struct uart_port *uport);
 static int msm_geni_serial_poll_bit(struct uart_port *uport,
-				int offset, int bit_field, bool set);
+				int offset, u32 bit_field, bool set);
 #ifdef CONFIG_LGE_USB_DEBUGGER
 int msm_geni_serial_get_uart_console_status(void);
 #endif
