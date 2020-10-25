@@ -13,7 +13,10 @@
 
 #include "../sm8150-flash_common/sm8150-flash_common-5G_modem.dtsi"
 
-<<<<<<< HEAD
+/*
+
+####  LG conflictions
+#### HEAD
 &mdm3 {
 	status = "disabled";
 };
@@ -25,5 +28,6 @@
 &imp {
 	status = "disabled";
 };
-=======
->>>>>>> e912b64... [Build][flash] Bring-up Flash LDU Kernel
+##########  compared  ##########
+#### e912b64... [Build][flash] Bring-up Flash LDU Kernel
+*/
