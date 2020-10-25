@@ -577,7 +577,6 @@ struct usbpd {
 	struct regulator	*vconn;
 	bool			vbus_enabled;
 	bool			vconn_enabled;
-	bool			vconn_is_external;
 
 	u8			tx_msgid[SOPII_MSG + 1];
 	u8			rx_msgid[SOPII_MSG + 1];
@@ -1166,19 +1165,6 @@ static int pd_select_pdo(struct usbpd *pd, int pdo_pos, int uv, int ua)
 		return -ENOTSUPP;
 	}
 
-	/* Can't sink more than 5V if VCONN is sourced from the VBUS input */
-	if (pd->vconn_enabled && !pd->vconn_is_external &&
-			pd->requested_voltage > 5000000)
-#ifdef CONFIG_LGE_USB
-	{
-		usbpd_err(&pd->dev, "Can't sink more than 5V if VCONN is "
-				    "sourced from the VBUS input\n");
-		return -ENOTSUPP;
-	}
-#else
-		return -ENOTSUPP;
-#endif
-
 	pd->requested_current = curr;
 	pd->requested_pdo = pdo_pos;
 
@@ -1263,26 +1249,6 @@ eval_src_caps:
 
 		switch (PD_SRC_PDO_TYPE(pdo)) {
 		case PD_SRC_PDO_TYPE_FIXED:
-			/*
-			 * Can't sink more than 5V if VCONN is sourced from the
-			 * VBUS input
-			 */
-			if (pd->vconn_enabled && !pd->vconn_is_external &&
-			    ((PD_SRC_PDO_FIXED_VOLTAGE(pdo) * 50000) > 5000000))
-				break;
-
-			for (j = 0; j < pd->num_sink_caps; j++) {
-				sink_cap = pd->sink_caps[j];
-				if (PD_SRC_PDO_FIXED_VOLTAGE(pdo) <=
-				    PD_SRC_PDO_FIXED_VOLTAGE(sink_cap)) {
-					pdo_pos = i + 1;
-					uv = 0;
-					ua = 0;
-					break;
-				}
-			}
-			break;
-
 		case PD_SRC_PDO_TYPE_AUGMENTED:
 			if (pd->spec_rev != USBPD_REV_30)
 				break;
@@ -1294,15 +1260,6 @@ eval_src_caps:
 				sink_cap = pd->sink_caps[j];
 				sink_uv = PD_SRC_PDO_FIXED_VOLTAGE(sink_cap) * 50000;
 				sink_ua = PD_SRC_PDO_FIXED_MAX_CURR(sink_cap) * 10000;
-
-				/*
-				 * Can't sink more than 5V if VCONN is sourced
-				 * from the VBUS input
-				 */
-				if (pd->vconn_enabled &&
-				    !pd->vconn_is_external &&
-				    (sink_uv > 5000000))
-					continue;
 
 				if (sink_uv <= pdo_uv) {
 					pdo_pos = i + 1;
@@ -3783,20 +3740,6 @@ static void usbpd_sm(struct work_struct *w)
 			usbpd_set_state(pd, PE_PRS_SNK_SRC_TRANSITION_TO_OFF);
 			break;
 		} else if (IS_CTRL(rx_msg, MSG_VCONN_SWAP)) {
-			/*
-			 * if VCONN is connected to VBUS, make sure we are
-			 * not in high voltage contract, otherwise reject.
-			 */
-			if (!pd->vconn_is_external &&
-					(pd->requested_voltage > 5000000)) {
-				ret = pd_send_msg(pd, MSG_REJECT, NULL, 0,
-						SOP_MSG);
-				if (ret)
-					usbpd_set_state(pd, PE_SEND_SOFT_RESET);
-
-				break;
-			}
-
 			ret = pd_send_msg(pd, MSG_ACCEPT, NULL, 0, SOP_MSG);
 			if (ret) {
 				usbpd_set_state(pd, PE_SEND_SOFT_RESET);
@@ -6003,9 +5946,6 @@ struct usbpd *usbpd_create(struct device *parent)
 			EXTCON_PROP_USB_TYPEC_POLARITY);
 	extcon_set_property_capability(pd->extcon, EXTCON_USB_HOST,
 			EXTCON_PROP_USB_SS);
-
-	pd->vconn_is_external = device_property_present(parent,
-					"qcom,vconn-uses-external-source");
 
 	pd->num_sink_caps = device_property_read_u32_array(parent,
 			"qcom,default-sink-caps", NULL, 0);
