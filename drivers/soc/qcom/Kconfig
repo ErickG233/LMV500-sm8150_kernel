@@ -830,6 +830,7 @@ endif # MSM_PM
 
 source "drivers/soc/qcom/memshare/Kconfig"
 source "drivers/soc/qcom/hab/Kconfig"
+source "drivers/soc/qcom/rmnet_ctl/Kconfig"
 
 config MSM_PERFORMANCE
 	tristate "msm performance driver to support userspace fmin/fmax request"
@@ -846,6 +847,9 @@ config QMP_DEBUGFS_CLIENT
 	help
 	  This options enables a driver which allows clients to send messages
 	  to Alway On processor using QMP transport.
+
+
+source "drivers/soc/qcom/lge/Kconfig"
 
 config QCOM_QHEE_ENABLE_MEM_PROTECTION
 	bool "QHEE enable kernel memory protection"
@@ -904,3 +908,4 @@ config QCOM_HYP_CORE_CTL
 	  CPUs can be assigned to the other guest OS by the hypervisor.
 	  An offline CPU is considered as a reserved CPU since this OS can't use
 	  it.
+source "drivers/soc/qcom/lge/Kconfig"

@@ -31,6 +31,10 @@
 #include <linux/usb/composite.h>
 #include <linux/usb/gadget.h>
 
+#ifdef CONFIG_LGE_USB_FACTORY
+#include <soc/qcom/lge/board_lge.h>
+#endif
+
 #include "debug.h"
 #include "core.h"
 #include "gadget.h"
@@ -294,9 +298,11 @@ void dwc3_gadget_del_and_unmap_request(struct dwc3_ep *dep,
 	if (req->request.status == -EINPROGRESS)
 		req->request.status = status;
 
-	if (req->trb)
+	if (req->trb) {
+		dbg_ep_unmap(dep->number, req);
 		usb_gadget_unmap_request_by_dev(dwc->sysdev,
 				&req->request, req->direction);
+	}
 
 	req->trb = NULL;
 	trace_dwc3_gadget_giveback(req);
@@ -1369,6 +1375,7 @@ static void dwc3_prepare_trbs(struct dwc3_ep *dep)
 		else
 			dwc3_prepare_one_trb_linear(dep, req);
 
+		dbg_ep_map(dep->number, req);
 		if (!dwc3_calc_trbs_left(dep))
 			return;
 	}
@@ -1532,6 +1539,7 @@ static int __dwc3_gadget_ep_queue(struct dwc3_ep *dep, struct dwc3_request *req)
 
 	list_add_tail(&req->list, &dep->pending_list);
 
+	dbg_ep_queue(dep->number, req);
 	/*
 	 * NOTICE: Isochronous endpoints should NEVER be prestarted. We must
 	 * wait for a XferNotReady event so we will know what's the current
@@ -1708,7 +1716,7 @@ static int dwc3_gadget_ep_dequeue(struct usb_ep *ep,
 	}
 
 out1:
-	dbg_event(dep->number, "DEQUEUE", 0);
+	dbg_ep_dequeue(dep->number, req);
 	/* giveback the request */
 	dep->queued_requests--;
 	dwc3_gadget_giveback(dep, req, -ECONNRESET);
@@ -2161,6 +2169,15 @@ static int dwc3_gadget_run_stop(struct dwc3 *dwc, int is_on, int suspend)
 			dbg_event(0xFF, "STOPTOUT", reg);
 		return -ETIMEDOUT;
 	}
+#ifdef CONFIG_LGE_USB_FACTORY
+	if ((lge_get_boot_mode() == LGE_BOOT_MODE_QEM_130K) ||
+		(lge_get_boot_mode() == LGE_BOOT_MODE_PIF_130K)) {
+		reg = dwc3_readl(dwc->regs, DWC3_DCFG);
+		reg &= ~(DWC3_DCFG_SPEED_MASK);
+		reg |= DWC3_DCFG_FULLSPEED;
+		dwc3_writel(dwc->regs, DWC3_DCFG, reg);
+	}
+#endif
 
 	return 0;
 }
@@ -3173,8 +3190,14 @@ static void dwc3_gadget_disconnect_interrupt(struct dwc3 *dwc)
 	reg &= ~DWC3_DCTL_INITU2ENA;
 	dwc3_writel(dwc->regs, DWC3_DCTL, reg);
 
+#ifdef CONFIG_LGE_USB
+	if (dwc->gadget_driver)
+		dwc3_disconnect_gadget(dwc);
+	else
+		pr_err("%s: dwc->gadget is NULL\n", __func__);
+#else
 	dwc3_disconnect_gadget(dwc);
-
+#endif
 	dwc->gadget.speed = USB_SPEED_UNKNOWN;
 	dwc->setup_packet_pending = false;
 	dwc->link_state = DWC3_LINK_STATE_SS_DIS;
@@ -3188,6 +3211,9 @@ static void dwc3_gadget_reset_interrupt(struct dwc3 *dwc)
 {
 	u32			reg;
 
+#ifdef CONFIG_LGE_USB
+	if (!dwc->usb_compliance_mode || !(*dwc->usb_compliance_mode))
+#endif
 	usb_phy_start_link_training(dwc->usb3_phy);
 
 	dwc->connected = true;
@@ -3621,6 +3647,9 @@ static void dwc3_gadget_interrupt(struct dwc3 *dwc,
 	case DWC3_DEVICE_EVENT_WAKEUP:
 		dwc3_gadget_wakeup_interrupt(dwc, false);
 		dwc->dbg_gadget_events.wakeup++;
+#ifdef CONFIG_LGE_USB
+		dwc3_notify_event(dwc, DWC3_CONTROLLER_WAKEUP_EVENT, 0);
+#endif
 		break;
 	case DWC3_DEVICE_EVENT_HIBER_REQ:
 		if (dev_WARN_ONCE(dwc->dev, !dwc->has_hibernation,
@@ -3647,6 +3676,16 @@ static void dwc3_gadget_interrupt(struct dwc3 *dwc,
 						event->event_info);
 			else
 				usb_gadget_vbus_draw(&dwc->gadget, 2);
+
+#ifdef CONFIG_LGE_USB
+			dev_dbg(dwc->dev, "%s: state:%d speed:%d\n", __func__,
+				dwc->gadget.state, dwc->speed);
+			if ((dwc->gadget.state >= USB_STATE_DEFAULT) ||
+			    (dwc->speed >= DWC3_DSTS_SUPERSPEED))
+				dwc3_notify_event(dwc,
+						DWC3_CONTROLLER_SUSPEND_EVENT,
+						0);
+#endif
 		}
 		break;
 	case DWC3_DEVICE_EVENT_SOF:

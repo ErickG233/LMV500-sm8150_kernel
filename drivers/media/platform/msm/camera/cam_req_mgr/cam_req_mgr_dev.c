@@ -28,7 +28,7 @@
 #include "cam_common_util.h"
 #include <linux/slub_def.h>
 
-#define CAM_REQ_MGR_EVENT_MAX 30
+#define CAM_REQ_MGR_EVENT_MAX 100
 
 static struct cam_req_mgr_device g_dev;
 struct kmem_cache *g_cam_req_mgr_timer_cachep;
@@ -473,6 +473,31 @@ static long cam_private_ioctl(struct file *file, void *fh,
 			rc = -EINVAL;
 		}
 		break;
+
+	case CAM_REQ_MGR_REQUEST_DUMP: {
+		struct cam_dump_req_cmd cmd;
+
+		if (k_ioctl->size != sizeof(cmd))
+			return -EINVAL;
+
+		if (copy_from_user(&cmd,
+			u64_to_user_ptr(k_ioctl->handle),
+			sizeof(struct cam_dump_req_cmd))) {
+			rc = -EFAULT;
+			break;
+		}
+
+		rc = cam_req_mgr_dump_request(&cmd);
+		if (!rc)
+			if (copy_to_user(
+				u64_to_user_ptr(k_ioctl->handle),
+				&cmd, sizeof(struct cam_dump_req_cmd))) {
+				rc = -EFAULT;
+				break;
+			}
+		}
+		break;
+
 	default:
 		return -ENOIOCTLCMD;
 	}

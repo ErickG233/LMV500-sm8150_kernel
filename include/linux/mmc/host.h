@@ -30,6 +30,7 @@ struct mmc_ios {
 	unsigned int	old_rate;       /* saved clock rate */
 	unsigned long	clk_ts;         /* time stamp of last updated clock */
 	unsigned short	vdd;
+	unsigned int    power_delay_ms;         /* waiting for stable power */
 
 /* vdd stores the bit number of the selected voltage range from below. */
 
@@ -681,6 +682,10 @@ struct mmc_host {
 	bool			card_clock_off;
 	struct extcon_dev	*extcon;
 	struct notifier_block card_detect_nb;
+
+#ifdef CONFIG_LGE_TRAY_EVENT
+	struct work_struct tray_work;
+#endif
 
 #ifdef CONFIG_MMC_PERF_PROFILING
 	struct {

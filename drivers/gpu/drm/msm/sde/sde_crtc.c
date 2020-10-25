@@ -46,6 +46,10 @@
 #define SDE_PSTATES_MAX (SDE_STAGE_MAX * 4)
 #define SDE_MULTIRECT_PLANE_MAX (SDE_STAGE_MAX * 2)
 
+#ifdef CONFIG_LGE_PM_PRM
+#include "fbcn/lge_intm.h"
+#endif
+
 struct sde_crtc_custom_events {
 	u32 event;
 	int (*func)(struct drm_crtc *crtc, bool en,
@@ -4372,6 +4376,11 @@ void sde_crtc_commit_kickoff(struct drm_crtc *crtc,
 				SDE_EVTLOG_FUNC_CASE2);
 	}
 	sde_crtc->play_count++;
+
+#ifdef CONFIG_LGE_PM_PRM
+	if (lge_prm_get_info(LGE_PRM_INFO_FBCN_ENABLED))
+		lge_intv_notify(ktime_get());
+#endif
 
 	/*
 	 * For SYNC inline modes, delay the kick off until after the

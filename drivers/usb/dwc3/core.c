@@ -257,6 +257,15 @@ done:
 	 * we must wait at least 50ms before accessing the PHY domain
 	 * (synchronization delay). DWC_usb31 programming guide section 1.3.2.
 	 */
+#ifdef CONFIG_LGE_USB
+	/*
+	 * Do not delay in usb compliance mode. Otherwise, it may fail at "TD
+	 * 4.7.5 Try. SNK DRP Connect Sink Test" of "USB-C Functional Tests".
+	 */
+	if (!(dwc->usb_compliance_mode &&
+	      *dwc->usb_compliance_mode &&
+	      (dwc->usb2_phy->flags & PHY_HOST_MODE)))
+#endif
 	if (dwc3_is_usb31(dwc))
 		msleep(50);
 
@@ -974,6 +983,7 @@ static int dwc3_core_get_phy(struct dwc3 *dwc)
 	if (node) {
 		dwc->usb2_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 0);
 		dwc->usb3_phy = devm_usb_get_phy_by_phandle(dev, "usb-phy", 1);
+		dwc->usbpd = devm_usbpd_get_by_phandle(dev, "usbpd");
 	} else {
 		dwc->usb2_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
 		dwc->usb3_phy = devm_usb_get_phy(dev, USB_PHY_TYPE_USB3);
@@ -1028,6 +1038,20 @@ static int dwc3_core_get_phy(struct dwc3 *dwc)
 			return ret;
 		}
 	}
+
+#ifdef CONFIG_LGE_USB
+	if (IS_ERR(dwc->usbpd)) {
+		ret = PTR_ERR(dwc->usbpd);
+		if (ret == -ENXIO || ret == -ENODEV) {
+			dwc->usbpd = NULL;
+		} else if (ret == -EPROBE_DEFER) {
+			return ret;
+		} else {
+			dev_err(dev, "no usbpd configured\n");
+			return ret;
+		}
+	}
+#endif
 
 	return 0;
 }
@@ -1248,6 +1272,7 @@ static int dwc3_probe(struct platform_device *pdev)
 
 	void __iomem		*regs;
 	int			irq;
+	char			dma_ipc_log_ctx_name[40];
 
 	if (count >= DWC_CTRL_COUNT) {
 		dev_err(dev, "Err dwc instance %d >= %d available\n",
@@ -1350,6 +1375,13 @@ static int dwc3_probe(struct platform_device *pdev)
 					dev_name(dwc->dev), 0);
 	if (!dwc->dwc_ipc_log_ctxt)
 		dev_err(dwc->dev, "Error getting ipc_log_ctxt\n");
+
+	snprintf(dma_ipc_log_ctx_name, sizeof(dma_ipc_log_ctx_name),
+					"%s.ep_events", dev_name(dwc->dev));
+	dwc->dwc_dma_ipc_log_ctxt = ipc_log_context_create(NUM_LOG_PAGES,
+						dma_ipc_log_ctx_name, 0);
+	if (!dwc->dwc_dma_ipc_log_ctxt)
+		dev_err(dwc->dev, "Error getting ipc_log_ctxt for ep_events\n");
 
 	dwc3_instance[count] = dwc;
 	dwc->index = count;
