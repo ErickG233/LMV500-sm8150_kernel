@@ -261,7 +261,6 @@ enum req_flag_bits {
 	 * set for "ide_preempt" requests and also for requests for which the
 	 * SCSI "quiesce" state must be ignored.
 	 */
-	__REQ_PREEMPT,
 	__REQ_NR_BITS,		/* stops here */
 };
 

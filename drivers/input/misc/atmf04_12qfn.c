@@ -442,7 +442,7 @@ static int Update_Sensitivity(struct atmf04_data *data, struct i2c_client *clien
 {
 	int ret = 0;
 #ifdef CONFIG_LGE_ATMF04_2CH
-    char sstvt_ch2_l;
+	char sstvt_ch2_l;
 #endif
 	unsigned char loop;
 
@@ -516,12 +516,12 @@ static unsigned char chk_done_erase(unsigned int wait_cnt, struct i2c_client *cl
 		if(++trycnt > wait_cnt) return RTN_TIMEOUT;
 
 	//============================================================//
-    //[20180327] ADS Change
-    //[START]=====================================================//
-    //mdelay(1);
+	//[20180327] ADS Change
+	//[START]=====================================================//
+	//mdelay(1);
 	mdelay(5);
 	//[END]======================================================//
-    rtn = i2c_smbus_read_byte_data(client, ADDR_EFLA_STS);
+	rtn = i2c_smbus_read_byte_data(client, ADDR_EFLA_STS);
 	}while((rtn & FLAG_DONE_ERASE) != FLAG_DONE_ERASE);
 
 	return RTN_SUCC;
@@ -637,32 +637,32 @@ static unsigned char load_firmware(struct atmf04_data *data, struct i2c_client *
 	unsigned char page_addr[2];
 	unsigned char fw_version, ic_fw_version, page_num;
 	int version_addr;
-    int chip_id = -1;
+	int chip_id = -1;
 #if defined (CONFIG_LGE_CAP_SENSOR_NEW_ALGORITHM)
 	int restore = 0;
 #endif
-  //============================================================//
-  //[20180320] ADS Add
-  //[START]=====================================================//
-  unsigned char sys_status = 1;
-  //[END]=======================================================//
+	//============================================================//
+	//[20180320] ADS Add
+	//[START]=====================================================//
+	unsigned char sys_status = 1;
+	//[END]=======================================================//
 
 	PINFO("Load Firmware Entered!!");
 
-  //============================================================//
-  //[20180320] ADS Change
-  //[START]=====================================================//
-  //gpio_set_value(data->platform_data->chip_enable, 0);
-  gpio_set_value(data->platform_data->chip_enable, 1);
-  mdelay(50);
-  gpio_set_value(data->platform_data->chip_enable, 0);
-  //[END]=======================================================//
+	//============================================================//
+	//[20180320] ADS Change
+	//[START]=====================================================//
+	//gpio_set_value(data->platform_data->chip_enable, 0);
+	gpio_set_value(data->platform_data->chip_enable, 1);
+	mdelay(50);
+	gpio_set_value(data->platform_data->chip_enable, 0);
+	//[END]=======================================================//
 
 	ret = request_firmware(&fw, name, &data->client->dev);
 	if (ret) {
 		PINFO("Unable to open bin [%s]  ret %d", name, ret);
-    if (fw)
-      release_firmware(fw);
+		if (fw)
+			release_firmware(fw);
 		return 1;
 	} else {
 		PINFO("Open bin [%s] ret : %d ", name, ret);
@@ -674,45 +674,45 @@ static unsigned char load_firmware(struct atmf04_data *data, struct i2c_client *
 	page_num = fw->data[version_addr+3];
 	PINFO("###########fw version : %d.%d, fw_version : %d, page_num : %d###########", fw->data[version_addr], fw->data[version_addr+1], fw_version, page_num);
 
-  //============================================================//
-  //[20180320] ADS Change
-  //[START]=====================================================//
-  mdelay(10);
-  //[END]=======================================================//
+	//============================================================//
+	//[20180320] ADS Change
+	//[START]=====================================================//
+	mdelay(10);
+	//[END]=======================================================//
 
-  //check IC as reading register 0x00
-  PINFO("SAR controller ATMF04 chip_id read check start");
-  chip_id= i2c_smbus_read_byte_data(client, 0x00);
-  for(i=0 ; i < IC_TIMEOUT_CNT; i++)
-  {
-    if(chip_id >=  0)
-    {
-      PINFO("SAR controller ATMF04 chip_id:0x%x , cnt:%d", chip_id, i);
-      break;
-    }
-    chip_id= i2c_smbus_read_byte_data(client, 0x00);
-    if( i == IC_TIMEOUT_CNT-1)
-    {
-      PINFO("SAR controller ATMF04 chip_id read fail ");
-      if (fw)
-        release_firmware(fw);
-      return 1;
-    }
-  }
-  //check IC as reading register 0x00
+	//check IC as reading register 0x00
+	PINFO("SAR controller ATMF04 chip_id read check start");
+	chip_id= i2c_smbus_read_byte_data(client, 0x00);
+	for(i=0 ; i < IC_TIMEOUT_CNT; i++)
+	{
+		if(chip_id >=  0)
+		{
+			PINFO("SAR controller ATMF04 chip_id:0x%x , cnt:%d", chip_id, i);
+			break;
+		}
+		chip_id= i2c_smbus_read_byte_data(client, 0x00);
+		if( i == IC_TIMEOUT_CNT-1)
+		{
+			PINFO("SAR controller ATMF04 chip_id read fail ");
+			if (fw)
+				release_firmware(fw);
+			return 1;
+		}
+	}
+	//check IC as reading register 0x00
 	main_version = i2c_smbus_read_byte_data(client, I2C_ADDR_PGM_VER_MAIN);
 	sub_version = i2c_smbus_read_byte_data(client, I2C_ADDR_PGM_VER_SUB);
 	ic_fw_version = MK_INT(main_version, sub_version);
 	PINFO("###########ic version : %d.%d, ic_fw_version : %d###########", main_version, sub_version, ic_fw_version);
 
-  if( (fw->data[version_addr] != main_version) || (fw->data[version_addr+1] != sub_version)) {
-    PINFO("update firmware");
-  //[20180320] ADS Change
-  //[START]=====================================================//
-        mdelay(500);
-        check_firmware_ready(client);
-        sys_status = i2c_smbus_read_byte_data(client, I2C_ADDR_SYS_STAT);
-  //[END]=======================================================//
+	if ((fw->data[version_addr] != main_version) || (fw->data[version_addr+1] != sub_version)) {
+		PINFO("update firmware");
+	//[20180320] ADS Change
+	//[START]=====================================================//
+		mdelay(500);
+		check_firmware_ready(client);
+		sys_status = i2c_smbus_read_byte_data(client, I2C_ADDR_SYS_STAT);
+	//[END]=======================================================//
 #if defined(CONFIG_LGE_CAP_SENSOR_NEW_ALGORITHM)
 		if ((ic_fw_version == 0) || ((sys_status & 0x06) ==0)) {
 			restore = 0;
@@ -737,8 +737,8 @@ static unsigned char load_firmware(struct atmf04_data *data, struct i2c_client *
 		rtn = read_eflash_page(FLAG_FUSE, page_addr, fuse_data, client);
 		if (rtn != RTN_SUCC) {
 			PERR("read eflash page fail!");
-      if (fw)
-        release_firmware(fw);
+			if (fw)
+				release_firmware(fw);
 			return rtn;		/* fuse read fail */
 		}
 
@@ -747,8 +747,8 @@ static unsigned char load_firmware(struct atmf04_data *data, struct i2c_client *
 		rtn = write_eflash_page(FLAG_FUSE, page_addr, fuse_data, client);
 		if (rtn != RTN_SUCC) {
 			PERR("write eflash page fail!");
-      if (fw)
-        release_firmware(fw);
+			if (fw)
+				release_firmware(fw);
 			return rtn;		/* fuse write fail */
 		}
 
@@ -756,10 +756,10 @@ static unsigned char load_firmware(struct atmf04_data *data, struct i2c_client *
 		rtn = erase_eflash(client);
 		if(rtn != RTN_SUCC) {
 			PINFO("earse fail\n");
-            if (fw)
-               release_firmware(fw);
+			if (fw)
+				release_firmware(fw);
 
-            return rtn;		//earse fail
+			return rtn;		//earse fail
 		}
 
 		while(count < page_num) {
@@ -780,9 +780,10 @@ static unsigned char load_firmware(struct atmf04_data *data, struct i2c_client *
 
 			if(chk_done(FL_EFLA_TIMEOUT_CNT, client) == RTN_TIMEOUT)
 			{
-			  if (fw)
-			    release_firmware(fw);
-			    return RTN_TIMEOUT;
+				if (fw){
+					release_firmware(fw);
+					return RTN_TIMEOUT;
+				}
 			}
 
 			count++;
@@ -884,7 +885,7 @@ static int write_calibration_data(struct atmf04_data *data, char *filename)
 		}
 		PINFO("%s: write [%s] to %s", __FUNCTION__, file_result, filename);
 		sys_close(fd);
-    set_fs(old_fs);
+		set_fs(old_fs);
 #else
 		sys_write(fd,0,sizeof(int));
 		sys_close(fd);
@@ -1199,7 +1200,7 @@ static ssize_t atmf04_store_regreset(struct device *dev,
 		PINFO("[%d]i2c_write_fail\n",data-> platform_data->irq_gpio);
 	
 	// CR Duty value 
-    cr_duty[1] = i2c_smbus_read_byte_data(client, I2C_ADDR_CR_DUTY_H);
+	cr_duty[1] = i2c_smbus_read_byte_data(client, I2C_ADDR_CR_DUTY_H);
 	cr_duty[0] = i2c_smbus_read_byte_data(client, I2C_ADDR_CR_DUTY_L);
 	cr_duty_val = MK_INT(cr_duty[1], cr_duty[0]);
 
@@ -1236,74 +1237,74 @@ static ssize_t atmf04_store_regreset(struct device *dev,
 
 #if defined (CONFIG_LGE_USE_DD_SAR_RESET)
 int atmf04_dd_sar_reset(void) {
-  struct i2c_client *client = atmf04_i2c_client;
-  int ret = 0;
-  if(client != NULL && on_sensor) //only doing reset 1. probing ok 2. sensor enabled
-  {
-    struct atmf04_data *data = i2c_get_clientdata(client);
-    short tmp;
-    short cs_per[2], cs_per_result;
-    short cr_duty[2], cs_duty[2], cr_duty_val, cs_duty_val;
+	struct i2c_client *client = atmf04_i2c_client;
+	int ret = 0;
+	if(client != NULL && on_sensor) //only doing reset 1. probing ok 2. sensor enabled
+	{
+		struct atmf04_data *data = i2c_get_clientdata(client);
+		short tmp;
+		short cs_per[2], cs_per_result;
+		short cr_duty[2], cs_duty[2], cr_duty_val, cs_duty_val;
 #ifdef CONFIG_LGE_ATMF04_2CH
-	short cs_per_ch2[2], cs_per_result_ch2;
-	short cs_duty_ch2[2], cs_duty_val_ch2;
+		short cs_per_ch2[2], cs_per_result_ch2;
+		short cs_duty_ch2[2], cs_duty_val_ch2;
 #endif
-    PINFO("atmf04 reset enter \n");
+		PINFO("atmf04 reset enter \n");
 
-	client = data->client;
+		client = data->client;
 
 #if defined(CONFIG_LGE_CAP_SENSOR_CHECK_FIRMWARE_STATUS)
-	check_firmware_ready(client);
+		check_firmware_ready(client);
 #endif
 
 #if 0 // atmf04_dd_sar_reset only reset - debugging calibration paused
-	// Whether cal is pass or fail, make it cal_result true to check raw data/CS/CR/count in bypass mode of AAT
-	cal_result = true;
-	write_calibration_data(data, PATH_CAPSENSOR_CAL);
+		// Whether cal is pass or fail, make it cal_result true to check raw data/CS/CR/count in bypass mode of AAT
+		cal_result = true;
+		write_calibration_data(data, PATH_CAPSENSOR_CAL);
 #endif
 
-	ret = i2c_smbus_write_byte_data(client, I2C_ADDR_SYS_CTRL, 0x02);
-	if(ret)
-		PINFO("[%d]i2c_write_fail\n",data-> platform_data->irq_gpio);
+		ret = i2c_smbus_write_byte_data(client, I2C_ADDR_SYS_CTRL, 0x02);
+		if(ret)
+			PINFO("[%d]i2c_write_fail\n",data-> platform_data->irq_gpio);
 
-	// CR Duty value
-	cr_duty[1] = i2c_smbus_read_byte_data(client, I2C_ADDR_CR_DUTY_H);
-	cr_duty[0] = i2c_smbus_read_byte_data(client, I2C_ADDR_CR_DUTY_L);
-	cr_duty_val = MK_INT(cr_duty[1], cr_duty[0]);
+		// CR Duty value
+		cr_duty[1] = i2c_smbus_read_byte_data(client, I2C_ADDR_CR_DUTY_H);
+		cr_duty[0] = i2c_smbus_read_byte_data(client, I2C_ADDR_CR_DUTY_L);
+		cr_duty_val = MK_INT(cr_duty[1], cr_duty[0]);
 
-	// Ch1 Per value
-	cs_per[0] = i2c_smbus_read_byte_data(client,I2C_ADDR_PER_H);
-	cs_per[1] = i2c_smbus_read_byte_data(client,I2C_ADDR_PER_L);
-	tmp = MK_INT(cs_per[0], cs_per[1]);
-	cs_per_result = tmp / 8;	// BIT_PERCENT_UNIT;
+		// Ch1 Per value
+		cs_per[0] = i2c_smbus_read_byte_data(client,I2C_ADDR_PER_H);
+		cs_per[1] = i2c_smbus_read_byte_data(client,I2C_ADDR_PER_L);
+		tmp = MK_INT(cs_per[0], cs_per[1]);
+		cs_per_result = tmp / 8;	// BIT_PERCENT_UNIT;
 
-	// Ch1 CS Duty value
-	cs_duty[1] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_H);
-	cs_duty[0] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_L);
-	cs_duty_val = MK_INT(cs_duty[1], cs_duty[0]);
+		// Ch1 CS Duty value
+		cs_duty[1] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_H);
+		cs_duty[0] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_L);
+		cs_duty_val = MK_INT(cs_duty[1], cs_duty[0]);
 
-	PINFO("[%d] Result(ch1): %2d %6d %6d", data-> platform_data->irq_gpio, cs_per_result, cr_duty_val, cs_duty_val);
+		PINFO("[%d] Result(ch1): %2d %6d %6d", data-> platform_data->irq_gpio, cs_per_result, cr_duty_val, cs_duty_val);
 
 #ifdef CONFIG_LGE_ATMF04_2CH
-	// Ch2 Per value
-	cs_per_ch2[0] = i2c_smbus_read_byte_data(client,I2C_ADDR_PER_CH2_H);
-	cs_per_ch2[1] = i2c_smbus_read_byte_data(client,I2C_ADDR_PER_CH2_L);
-	tmp = MK_INT(cs_per_ch2[0], cs_per_ch2[1]);
-	cs_per_result_ch2 = tmp / 8;	// BIT_PERCENT_UNIT;
+		// Ch2 Per value
+		cs_per_ch2[0] = i2c_smbus_read_byte_data(client,I2C_ADDR_PER_CH2_H);
+		cs_per_ch2[1] = i2c_smbus_read_byte_data(client,I2C_ADDR_PER_CH2_L);
+		tmp = MK_INT(cs_per_ch2[0], cs_per_ch2[1]);
+		cs_per_result_ch2 = tmp / 8;	// BIT_PERCENT_UNIT;
 
-	// Ch2 CS Duty value
-	cs_duty_ch2[1] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_CH2_H);
-	cs_duty_ch2[0] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_CH2_L);
-	cs_duty_val_ch2 = MK_INT(cs_duty_ch2[1], cs_duty_ch2[0]);
+		// Ch2 CS Duty value
+		cs_duty_ch2[1] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_CH2_H);
+		cs_duty_ch2[0] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_CH2_L);
+		cs_duty_val_ch2 = MK_INT(cs_duty_ch2[1], cs_duty_ch2[0]);
 
-	PINFO("[%d] Result(ch2): %2d %6d %6d", data-> platform_data->irq_gpio, cs_per_result_ch2, cr_duty_val, cs_duty_val_ch2);
+		PINFO("[%d] Result(ch2): %2d %6d %6d", data-> platform_data->irq_gpio, cs_per_result_ch2, cr_duty_val, cs_duty_val_ch2);
 #endif
-  }
-  else
-  {
-    PINFO("atmf04 doesn't support, so skip\n");
-  }
-  return ret;
+	}
+	else
+	{
+	PINFO("atmf04 doesn't support, so skip\n");
+	}
+	return ret;
 }
 #endif
 static int get_bit(unsigned short x, int n) {
@@ -1382,7 +1383,7 @@ static ssize_t atmf04_show_regproxdata(struct device *dev,
 	/* Init Touch Mode */
 	else
 #endif
-    	sprintf(buf_line, "[R]%6d %6d %6d %6d %6d %6d %6d %6d\n", 
+		sprintf(buf_line, "[R]%6d %6d %6d %6d %6d %6d %6d %6d\n", 
 		                   get_bit(init_touch_md,1), cs_per_result, cs_per_result_ch2, cr_duty_val, cs_duty_val, cs_duty_val_ch2, cap_value, cap_value_ch2);
 
 #else
@@ -1394,7 +1395,7 @@ static ssize_t atmf04_show_regproxdata(struct device *dev,
 		sprintf(buf_line, "[R]%6d %6d %6d %6d %6d\n", get_bit(init_touch_md,2), cs_per_result, cr_duty_val, cs_duty_val, cap_value);
 	else		/* Init Touch Mode */
 #endif
-    	sprintf(buf_line, "[R]%6d %6d %6d %6d %6d\n", get_bit(init_touch_md,1), cs_per_result, cr_duty_val, cs_duty_val, cap_value);
+		sprintf(buf_line, "[R]%6d %6d %6d %6d %6d\n", get_bit(init_touch_md,1), cs_per_result, cr_duty_val, cs_duty_val, cap_value);
 #endif
 	nlength = strlen(buf_regproxdata);
 	strcpy(&buf_regproxdata[nlength], buf_line);
@@ -1509,7 +1510,7 @@ static ssize_t atmf04_show_check_far(struct device *dev, struct device_attribute
 	cs_duty[0] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_L);
 	cs1_duty_val = MK_INT(cs_duty[1], cs_duty[0]);
 
-    cs_duty[1] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_CH2_H);
+	cs_duty[1] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_CH2_H);
 	cs_duty[0] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_CH2_L);
 	cs2_duty_val = MK_INT(cs_duty[1], cs_duty[0]);
 
@@ -1522,23 +1523,23 @@ static ssize_t atmf04_show_check_far(struct device *dev, struct device_attribute
 #endif
 
 /* Check poor contact */
-    if (get_bit(init_touch_md_check, 4) == 1)
+	if (get_bit(init_touch_md_check, 4) == 1)
 	{
 		poor_contact = 1;
 		check_result += 1;
 	}
 
 /* Calibration Check */
-    if (get_bit(init_touch_md_check, bit_mask) != 1)
-       check_result += 1;
+	if (get_bit(init_touch_md_check, bit_mask) != 1)
+	   check_result += 1;
 
 /* CR Duty Range Check */
-    if ((cr_duty_val < ATMF04_CR_DUTY_LOW) || (cr_duty_val > ATMF04_CR_DUTY_HIGH))
-       check_result += 1;
+	if ((cr_duty_val < ATMF04_CR_DUTY_LOW) || (cr_duty_val > ATMF04_CR_DUTY_HIGH))
+	   check_result += 1;
 
 /* CS Duty Rnage Check */
-    if ((cs1_duty_val < ATMF04_CS_DUTY_LOW) || (cs1_duty_val > ATMF04_CS_DUTY_HIGH) || (cs2_duty_val < ATMF04_CS_DUTY_LOW) || (cs1_duty_val > ATMF04_CS_DUTY_HIGH))
-       check_result += 1;
+	if ((cs1_duty_val < ATMF04_CS_DUTY_LOW) || (cs1_duty_val > ATMF04_CS_DUTY_HIGH) || (cs2_duty_val < ATMF04_CS_DUTY_LOW) || (cs1_duty_val > ATMF04_CS_DUTY_HIGH))
+	   check_result += 1;
 
 	if(gpio_get_value(data->platform_data->irq_gpio) == 1)
 	{
@@ -1546,20 +1547,20 @@ static ssize_t atmf04_show_check_far(struct device *dev, struct device_attribute
 		check_result += 1;
 	}
 
-    if (check_result != 0)
-    {
+	if (check_result != 0)
+	{
 		PINFO("[fail] 1.cal: %d, cr: %d, cs_ch1: %d, cs_ch2: %d, poor_contact: %d",
-                get_bit(init_touch_md_check, bit_mask), cr_duty_val, cs1_duty_val, cs2_duty_val, poor_contact);
+				get_bit(init_touch_md_check, bit_mask), cr_duty_val, cs1_duty_val, cs2_duty_val, poor_contact);
 		mutex_unlock(&data->update_lock);
 		return sprintf(buf,"%d",0);
-    }
-    else
-    {
+	}
+	else
+	{
 		PINFO("[PASS] 2.cal: %d, cr: %d, cs_ch1: %d, cs_ch2: %d, poor_contact: %d",
-                get_bit(init_touch_md_check, bit_mask), cr_duty_val, cs1_duty_val, cs2_duty_val, poor_contact);
+				get_bit(init_touch_md_check, bit_mask), cr_duty_val, cs1_duty_val, cs2_duty_val, poor_contact);
 		mutex_unlock(&data->update_lock);
 		return sprintf(buf,"%d",1);
-    }
+	}
 }
 
 static ssize_t atmf04_show_check_mid(struct device *dev, struct device_attribute *attr, char *buf)
@@ -1594,7 +1595,7 @@ static ssize_t atmf04_show_check_mid(struct device *dev, struct device_attribute
 	cs_duty[0] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_L);
 	cs1_duty_val = MK_INT(cs_duty[1], cs_duty[0]);
 
-    cs_duty[1] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_CH2_H);
+	cs_duty[1] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_CH2_H);
 	cs_duty[0] = i2c_smbus_read_byte_data(client, I2C_ADDR_CS_DUTY_CH2_L);
 	cs2_duty_val = MK_INT(cs_duty[1], cs_duty[0]);
 
@@ -1607,42 +1608,42 @@ static ssize_t atmf04_show_check_mid(struct device *dev, struct device_attribute
 #endif
 
 /* Calibration Check */
-    if (get_bit(init_touch_md_check, bit_mask) != 1)
-    {
-       check_result += 1;
-    }
+	if (get_bit(init_touch_md_check, bit_mask) != 1)
+	{
+	   check_result += 1;
+	}
 /* CR Duty Range Check */
-    if ((cr_duty_val < ATMF04_CR_DUTY_LOW) || (cr_duty_val > ATMF04_CR_DUTY_HIGH))
-    {
-       check_result += 1;
-    }
+	if ((cr_duty_val < ATMF04_CR_DUTY_LOW) || (cr_duty_val > ATMF04_CR_DUTY_HIGH))
+	{
+	   check_result += 1;
+	}
 /* CS Duty Rnage Check */
-    if ((cs1_duty_val < ATMF04_CS_DUTY_LOW) || (cs1_duty_val > ATMF04_CS_DUTY_HIGH) || (cs2_duty_val < ATMF04_CS_DUTY_LOW) || (cs1_duty_val > ATMF04_CS_DUTY_HIGH))
-    {
-       check_result += 1;
-    }
+	if ((cs1_duty_val < ATMF04_CS_DUTY_LOW) || (cs1_duty_val > ATMF04_CS_DUTY_HIGH) || (cs2_duty_val < ATMF04_CS_DUTY_LOW) || (cs1_duty_val > ATMF04_CS_DUTY_HIGH))
+	{
+	   check_result += 1;
+	}
 
 /* Check poor contact */
-    if (get_bit(init_touch_md_check, 4) == 1)
+	if (get_bit(init_touch_md_check, 4) == 1)
 	{
 		poor_contact = 1;
 		check_result += 1;
 	}
 
-    if (check_result != 0)
-    {
+	if (check_result != 0)
+	{
 		PINFO("[fail] 1.cal: %d, cr: %d, cs_ch1: %d, cs_ch2: %d, poor_contact: %d",
-                get_bit(init_touch_md_check, bit_mask), cr_duty_val, cs1_duty_val, cs2_duty_val, poor_contact);
+				get_bit(init_touch_md_check, bit_mask), cr_duty_val, cs1_duty_val, cs2_duty_val, poor_contact);
 		mutex_unlock(&data->update_lock);
 		return sprintf(buf,"%d",0);
-    }
-    else
-    {
+	}
+	else
+	{
 		PINFO("[PASS] 2.cal: %d, cr: %d, cs_ch1: %d, cs_ch2: %d, poor_contact: %d",
-                get_bit(init_touch_md_check, bit_mask), cr_duty_val, cs1_duty_val, cs2_duty_val, poor_contact);
+				get_bit(init_touch_md_check, bit_mask), cr_duty_val, cs1_duty_val, cs2_duty_val, poor_contact);
 		mutex_unlock(&data->update_lock);
 		return sprintf(buf,"%d",1);
-    }
+	}
 }
 
 static DEVICE_ATTR(onoff,        0664, NULL, atmf04_store_onoffsensor);
@@ -1738,69 +1739,69 @@ static void atmf04_work_handler(struct work_struct *work)
 #endif
 	data->touch_out = i2c_smbus_read_byte_data(client, I2C_ADDR_TCH_OUTPUT);
 	irq_state = gpio_get_value(data->platform_data->irq_gpio);
-    PINFO("touch_out[%x] irq_state[%d]", data->touch_out, irq_state);
+	PINFO("touch_out[%x] irq_state[%d]", data->touch_out, irq_state);
 
-    /* When I2C fail and abnormal status*/
-    if (data->touch_out < 0)
-    {
-        PINFO("I2C Error[%x]", data->touch_out);
-        input_report_abs(data->input_dev_cap, ABS_DISTANCE, NEAR_STATUS);/* FAR-to-NEAR detection */
-        input_sync(data->input_dev_cap);
+	/* When I2C fail and abnormal status*/
+	if (data->touch_out < 0)
+	{
+		PINFO("I2C Error[%x]", data->touch_out);
+		input_report_abs(data->input_dev_cap, ABS_DISTANCE, NEAR_STATUS);/* FAR-to-NEAR detection */
+		input_sync(data->input_dev_cap);
 
-        PINFO("[%d]NEAR ",data->platform_data->irq_gpio);
-    }
-    else
-    {
-        if (gpio_get_value(data->platform_data->chip_enable) == 1) { // if power off
-        PINFO("cap sensor is already power off : touch_out(0x%x)", data->touch_out);
-        return;
+		PINFO("[%d]NEAR ",data->platform_data->irq_gpio);
+	}
+	else
+	{
+		if (gpio_get_value(data->platform_data->chip_enable) == 1) { // if power off
+		PINFO("cap sensor is already power off : touch_out(0x%x)", data->touch_out);
+		return;
 	    }
 #ifdef CONFIG_LGE_ATMF04_2CH
-        /* FAR */
+		/* FAR */
 	    if (irq_state == 0 && data->touch_out == (CH2_FAR|CH1_FAR))
 	    {
 	       data->cap_detection = 0;
 
 		   input_report_abs(data->input_dev_cap, ABS_DISTANCE, FAR_STATUS);/* NEAR-to-FAR detection */
-           input_sync(data->input_dev_cap);
+		   input_sync(data->input_dev_cap);
 
-           PINFO("[%d]FAR ",data->platform_data->irq_gpio);
+		   PINFO("[%d]FAR ",data->platform_data->irq_gpio);
 	    }
-        /* NEAR */
+		/* NEAR */
 	    else
-        {
-    	   data->cap_detection = 1;
+		{
+		   data->cap_detection = 1;
 
-           input_report_abs(data->input_dev_cap, ABS_DISTANCE, NEAR_STATUS);/* FAR-to-NEAR detection */
-           input_sync(data->input_dev_cap);
+		   input_report_abs(data->input_dev_cap, ABS_DISTANCE, NEAR_STATUS);/* FAR-to-NEAR detection */
+		   input_sync(data->input_dev_cap);
 
-           PINFO("[%d]NEAR ",data->platform_data->irq_gpio);
+		   PINFO("[%d]NEAR ",data->platform_data->irq_gpio);
 	    }
-        PINFO("[%d] Work Handler done",data->platform_data->irq_gpio);
+		PINFO("[%d] Work Handler done",data->platform_data->irq_gpio);
 #else
-        /* Occurred touch event */
-        if(data->touch_out)
-        {
-            //	if ((data->touch_out == 1 ) && (data->cap_datection == 0)) {
-            data->cap_detection = 1;
+		/* Occurred touch event */
+		if(data->touch_out)
+		{
+			//	if ((data->touch_out == 1 ) && (data->cap_datection == 0)) {
+			data->cap_detection = 1;
 
-            input_report_abs(data->input_dev_cap, ABS_DISTANCE, NEAR_STATUS);/* FAR-to-NEAR detection */
-            input_sync(data->input_dev_cap);
+			input_report_abs(data->input_dev_cap, ABS_DISTANCE, NEAR_STATUS);/* FAR-to-NEAR detection */
+			input_sync(data->input_dev_cap);
 
-            PINFO("[%d]NEAR ",data->platform_data->irq_gpio);
+			PINFO("[%d]NEAR ",data->platform_data->irq_gpio);
 	    }
-        else
-        {
-            data->cap_detection = 0;
+		else
+		{
+			data->cap_detection = 0;
 
-            input_report_abs(data->input_dev_cap, ABS_DISTANCE, FAR_STATUS);/* NEAR-to-FAR detection */
-            input_sync(data->input_dev_cap);
+			input_report_abs(data->input_dev_cap, ABS_DISTANCE, FAR_STATUS);/* NEAR-to-FAR detection */
+			input_sync(data->input_dev_cap);
 
-            PINFO("[%d]FAR ",data->platform_data->irq_gpio);
-        }
-        PINFO("[%d] Work Handler done",data->platform_data->irq_gpio);
+			PINFO("[%d]FAR ",data->platform_data->irq_gpio);
+		}
+		PINFO("[%d] Work Handler done",data->platform_data->irq_gpio);
 #endif
-    }
+	}
 #if defined(CONFIG_LGE_CAP_SENSOR_IGNORE_INT_ON_PROBE)
 	}
 	else{
@@ -1866,7 +1867,7 @@ static int sensor_regulator_power_on(struct atmf04_data *data, bool on)
 
 	if (on == false)
 		goto power_off;
-    
+	
 	rc = regulator_set_load(pdata->vcc_ana, pdata->vdd_ana_load_ua);
 	if (rc < 0) {
 		dev_err(&client->dev,
@@ -2153,8 +2154,8 @@ static int atmf04_probe(struct i2c_client *client,
 		PINFO("input sysfs create fail!\n");
 
 	err = sysfs_create_group(&client->dev.kobj, &atmf04_attr_group);
-    if (err)
-    	PINFO("sysfs create fail!\n");
+	if (err)
+		PINFO("sysfs create fail!\n");
 
 	/* default sensor off */
 #if defined(CONFIG_LGE_CAP_SENSOR_IGNORE_INT_ON_PROBE)
@@ -2276,7 +2277,7 @@ static void async_atmf04_init(void *data, async_cookie_t cookie)
 
 static int __init atmf04_init(void)
 {
-    async_schedule(async_atmf04_init, NULL);
+	async_schedule(async_atmf04_init, NULL);
 	return 0;
 }
 
