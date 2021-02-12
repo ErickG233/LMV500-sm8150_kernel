@@ -24,8 +24,13 @@
 #include "diagfwd_mhi.h"
 #include "diag_dci.h"
 #include "diag_ipc_logging.h"
+#include "lg_diag_bypass.h"
 
 #define BRIDGE_TO_MUX(x)	(x + DIAG_MUX_BRIDGE_BASE)
+
+#ifdef CONFIG_LGE_DIAG_BYPASS
+extern int diag_bypass_enable;
+#endif
 
 struct diagfwd_bridge_info bridge_info[NUM_REMOTE_DEV] = {
 	{
@@ -176,6 +181,16 @@ int diag_remote_dev_open(int id)
 
 void diag_remote_dev_close(int id)
 {
+	if (bridge_info[id].type == DIAG_DATA_TYPE)
+		diag_notify_md_client(BRIDGE_TO_MUX(id), 0, DIAG_STATUS_CLOSED);
+
+	if (id < 0 || id >= NUM_REMOTE_DEV)
+		return;
+
+	diag_mux_close_device(BRIDGE_TO_MUX(id));
+
+	if (bridge_info[id].type == DIAG_DATA_TYPE)
+		diag_notify_md_client(BRIDGE_TO_MUX(id), 0, DIAG_STATUS_CLOSED);
 
 	if (id < 0 || id >= NUM_REMOTE_DEV)
 		return;
@@ -294,3 +309,17 @@ void diag_unregister_bridge(void)
 	else if (IS_ENABLED(CONFIG_MHI_BUS))
 		diag_unregister_mhi();
 }
+
+#ifdef CONFIG_LGE_DIAG_BYPASS
+int diagfwd_bridge_mux_connect_bypass(int id, int mode) {
+    return diagfwd_bridge_mux_connect(id, mode);
+}
+
+int diagfwd_bridge_mux_write_done_bypass(unsigned char *buf, int len, int buf_ctx, int id) {
+    return diagfwd_bridge_mux_write_done(buf, len, buf_ctx, id);
+}
+
+int diagfwd_bridge_mux_disconnect_bypass(int id, int mode) {
+    return diagfwd_bridge_mux_disconnect(id, mode);
+}
+#endif
