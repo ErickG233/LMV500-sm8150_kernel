@@ -191,7 +191,7 @@ enum arm_smmu_s2cr_privcfg {
 #define TLBSTATUS_SACTIVE		(1 << 0)
 #define ARM_SMMU_CB_ATS1PR		0x800
 #define ARM_SMMU_CB_ATSR		0x8f0
-#define ARM_SMMU_STATS_SYNC_INV_TBU_ACK 0x25dc
+#define ARM_SMMU_STATS_SYNC_INV_TBU_ACK 0x251c
 #define TBU_SYNC_ACK_MASK		0x1ff
 #define TBU_SYNC_ACK_SHIFT		17
 #define TBU_SYNC_REQ_MASK		0x1
