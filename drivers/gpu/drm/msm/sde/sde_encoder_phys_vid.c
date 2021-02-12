@@ -17,6 +17,11 @@
 #include "sde_formats.h"
 #include "dsi_display.h"
 #include "sde_trace.h"
+#if IS_ENABLED(CONFIG_LGE_COVER_DISPLAY)
+#include <asm/atomic.h>
+#include "../lge/dp/lge_dp_def.h"
+#include <linux/lge_cover_display.h>
+#endif
 
 #define SDE_DEBUG_VIDENC(e, fmt, ...) SDE_DEBUG("enc%d intf%d " fmt, \
 		(e) && (e)->base.parent ? \
@@ -946,7 +951,7 @@ static void sde_encoder_phys_vid_get_hw_resources(
 static int _sde_encoder_phys_vid_wait_for_vblank(
 		struct sde_encoder_phys *phys_enc, bool notify)
 {
-	struct sde_encoder_wait_info wait_info = {0};
+	struct sde_encoder_wait_info wait_info = {0, };
 	int ret = 0;
 	u32 event = SDE_ENCODER_FRAME_EVENT_ERROR |
 			SDE_ENCODER_FRAME_EVENT_SIGNAL_RELEASE_FENCE |
@@ -971,6 +976,12 @@ static int _sde_encoder_phys_vid_wait_for_vblank(
 		phys_enc->parent_ops.handle_frame_done(
 			 phys_enc->parent, phys_enc, event);
 
+#if IS_ENABLED(CONFIG_LGE_COVER_DISPLAY)
+	if (ret == -ETIMEDOUT) {
+		pr_err("%s : CoverDisplay unexpected error happens\n", __func__);
+		set_cover_display_state(COVER_DISPLAY_STATE_CONNECTED_OFF);
+	}
+#endif
 	return ret;
 }
 
