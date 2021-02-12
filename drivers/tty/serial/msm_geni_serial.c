@@ -32,6 +32,10 @@
 #include <soc/qcom/boot_stats.h>
 #include <linux/dma-mapping.h>
 
+#ifdef CONFIG_LGE_USB_DEBUGGER
+#include <soc/qcom/lge/board_lge.h>
+#endif
+
 /* UART specific GENI registers */
 #define SE_UART_LOOPBACK_CFG		(0x22C)
 #define SE_UART_TX_TRANS_CFG		(0x25C)
@@ -201,6 +205,9 @@ static int msm_geni_serial_power_on(struct uart_port *uport);
 static void msm_geni_serial_power_off(struct uart_port *uport);
 static int msm_geni_serial_poll_bit(struct uart_port *uport,
 				int offset, u32 bit_field, bool set);
+#ifdef CONFIG_LGE_USB_DEBUGGER
+int msm_geni_serial_get_uart_console_status(void);
+#endif
 static void msm_geni_serial_stop_rx(struct uart_port *uport);
 static int msm_geni_serial_runtime_resume(struct device *dev);
 static int msm_geni_serial_runtime_suspend(struct device *dev);
@@ -214,6 +221,20 @@ static void msm_geni_serial_set_manual_flow(bool enable,
 
 static struct msm_geni_serial_port msm_geni_console_port;
 static struct msm_geni_serial_port msm_geni_serial_ports[GENI_UART_NR_PORTS];
+
+#ifdef CONFIG_LGE_USB_DEBUGGER
+enum {
+	UART_CONSOLE_DISABLED = 0,
+	UART_CONSOLE_ENABLED,
+	UART_CONSOLE_PREPARE,
+};
+#define VOLUP_KEY_PRESSED 0x1
+#define POW_KEY_PRESSED 0x2
+#define VOLUP_AND_POWER_PRESS (VOLUP_KEY_PRESSED | POW_KEY_PRESSED)
+static int g_ms_status = UART_CONSOLE_PREPARE;
+static struct delayed_work uart_console_work;
+extern int uart_key_press_status;
+#endif
 
 static void msm_geni_serial_config_port(struct uart_port *uport, int cfg_flags)
 {
@@ -781,6 +802,13 @@ static void msm_geni_serial_console_write(struct console *co, const char *s,
 	unsigned int geni_status;
 	int irq_en;
 
+#ifdef CONFIG_LGE_USB_DEBUGGER
+	if(console_uart_status() <= 0)
+		return;
+	if(msm_geni_serial_get_uart_console_status() != UART_CONSOLE_ENABLED)
+		return;
+#endif
+
 	WARN_ON(co->index < 0 || co->index >= GENI_UART_NR_PORTS);
 
 	port = get_port_from_line(co->index, true);
@@ -937,6 +965,11 @@ static void msm_geni_serial_start_tx(struct uart_port *uport)
 	unsigned int geni_status;
 	unsigned int geni_ios;
 	static unsigned int ios_log_limit;
+
+#ifdef CONFIG_LGE_USB_DEBUGGER
+	if((g_ms_status != UART_CONSOLE_ENABLED) && uart_console(uport))
+		return;
+#endif
 
 	if (!uart_console(uport) && !pm_runtime_active(uport->dev)) {
 		IPC_LOG_MSG(msm_port->ipc_log_misc,
@@ -1772,8 +1805,16 @@ static void msm_geni_serial_shutdown(struct uart_port *uport)
 		wait_for_transfers_inflight(uport);
 	}
 
+#ifndef CONFIG_LGE_USB_DEBUGGER
 	disable_irq(uport->irq);
 	free_irq(uport->irq, uport);
+#else
+	if((g_ms_status == UART_CONSOLE_ENABLED) || !uart_console(uport))
+	{
+		disable_irq(uport->irq);
+		free_irq(uport->irq, uport);
+	}
+#endif
 	spin_lock_irqsave(&uport->lock, flags);
 	msm_geni_serial_stop_tx(uport);
 	msm_geni_serial_stop_rx(uport);
@@ -1923,8 +1964,17 @@ static int msm_geni_serial_startup(struct uart_port *uport)
 	 * before returning to the framework.
 	 */
 	mb();
+#ifndef CONFIG_LGE_USB_DEBUGGER
 	ret = request_irq(uport->irq, msm_geni_serial_isr, IRQF_TRIGGER_HIGH,
 			msm_port->name, uport);
+#else
+	if((g_ms_status == UART_CONSOLE_ENABLED) || !uart_console(uport))
+	{
+		ret = request_irq(uport->irq, msm_geni_serial_isr, IRQF_TRIGGER_HIGH,
+				msm_port->name, uport);
+	}
+#endif
+
 	if (unlikely(ret)) {
 		dev_err(uport->dev, "%s: Failed to get IRQ ret %d\n",
 							__func__, ret);
@@ -2179,6 +2229,11 @@ static unsigned int msm_geni_serial_tx_empty(struct uart_port *uport)
 	if (!uart_console(uport) && device_pending_suspend(uport))
 		return 1;
 
+#ifdef CONFIG_LGE_USB_DEBUGGER
+	if((g_ms_status != UART_CONSOLE_ENABLED) && uart_console(uport))
+		return 1;
+#endif
+
 	if (port->xfer_mode == SE_DMA)
 		tx_fifo_status = port->tx_dma ? 1 : 0;
 	else
@@ -2189,6 +2244,73 @@ static unsigned int msm_geni_serial_tx_empty(struct uart_port *uport)
 
 	return is_tx_empty;
 }
+
+#ifdef CONFIG_LGE_USB_DEBUGGER
+void msm_geni_serial_set_uart_console_status(int status)
+{
+	if(uart_key_press_status != VOLUP_AND_POWER_PRESS && status == UART_CONSOLE_ENABLED) {
+		pr_info("geni_uart_console_status : power/volup keys are not pressed\n");
+		return;
+	}
+	pr_info("geni_uart_console_status : %d to %d\n",g_ms_status, status);
+	g_ms_status = status;
+}
+EXPORT_SYMBOL(msm_geni_serial_set_uart_console_status);
+
+int msm_geni_serial_get_uart_console_status(void)
+{
+	return g_ms_status;
+}
+EXPORT_SYMBOL(msm_geni_serial_get_uart_console_status);
+
+int msm_geni_serial_set_uart_console(int enable)
+{
+	struct uart_port *uport;
+	struct msm_geni_serial_port *dev_port;
+	int ret = 0;
+	
+	if(lge_get_boot_mode() != LGE_BOOT_MODE_NORMAL)
+	{
+		pr_err("Not normal mode. Just return\n");
+		return ret;
+	} 
+	if(uart_key_press_status != VOLUP_AND_POWER_PRESS && enable) {
+		pr_err("Power/volup are not pressed. Block uart resume\n");
+		return ret;
+	}
+	dev_port = get_port_from_line(0, true);
+	if (IS_ERR_OR_NULL(dev_port)) {
+		ret = PTR_ERR(dev_port);
+		pr_err("Invalid line 0(%d)\n", ret);
+		return ret;
+	}
+
+	uport = &dev_port->uport;
+
+	if (uport == NULL)
+		return -EINVAL;
+
+	if (uport->private_data == NULL)
+		return -EINVAL;
+
+	if (enable) {
+		cancel_delayed_work(&uart_console_work);
+		uart_resume_port((struct uart_driver *)uport->private_data, uport);
+		disable_irq(uport->irq);
+	} else {
+		uart_suspend_port((struct uart_driver *)uport->private_data, uport);
+	}
+
+	return ret;
+}
+EXPORT_SYMBOL(msm_geni_serial_set_uart_console);
+static void uart_work_func(struct work_struct *work)
+{
+	pr_info("%s: uart disable \n", __func__);
+	msm_geni_serial_set_uart_console(0);
+	g_ms_status = UART_CONSOLE_DISABLED;
+}
+#endif
 
 static ssize_t msm_geni_serial_xfer_mode_show(struct device *dev,
 				struct device_attribute *attr, char *buf)
@@ -2314,6 +2436,12 @@ msm_geni_serial_early_console_write(struct console *con, const char *s,
 {
 	struct earlycon_device *dev = con->data;
 
+#ifdef CONFIG_LGE_USB_DEBUGGER
+	if(console_uart_status() <= 0)
+		return;
+	if(msm_geni_serial_get_uart_console_status() != UART_CONSOLE_ENABLED)
+		return;
+#endif
 	__msm_geni_serial_console_write(&dev->port, s, n);
 }
 
@@ -2401,6 +2529,9 @@ msm_geni_serial_earlycon_setup(struct earlycon_device *dev,
 	 * Ensure that the early console setup completes before
 	 * returning.
 	 */
+#ifdef CONFIG_LGE_USB_DEBUGGER
+	g_ms_status = UART_CONSOLE_ENABLED;
+#endif
 	mb();
 exit_geni_serial_earlyconsetup:
 	return ret;
@@ -2971,6 +3102,10 @@ static int msm_geni_serial_sys_resume_noirq(struct device *dev)
 
 	if (uart_console(uport) &&
 	    console_suspend_enabled && uport->suspended) {
+#ifdef CONFIG_LGE_USB_DEBUGGER
+		if(g_ms_status != UART_CONSOLE_ENABLED)
+			return 0;
+#endif
 		uart_resume_port((struct uart_driver *)uport->private_data,
 									uport);
 		disable_irq(uport->irq);
@@ -3089,6 +3224,13 @@ static int __init msm_geni_serial_init(void)
 		return ret;
 	}
 
+#ifdef CONFIG_LGE_USB_DEBUGGER
+	if(g_ms_status != UART_CONSOLE_ENABLED)
+	{
+		INIT_DELAYED_WORK(&uart_console_work,uart_work_func);
+		schedule_delayed_work(&uart_console_work,msecs_to_jiffies(30*1000));//wait for console service start
+	}
+#endif
 	pr_info("%s: Driver initialized", __func__);
 	return ret;
 }
