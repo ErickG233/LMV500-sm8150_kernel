@@ -22,6 +22,18 @@ config SDFAT_USE_FOR_EXFAT
 	help
 	  If you want to register sdFAT as available for exFAT, say Y.
 
+config SDFAT_COMPAT_TUXERA
+	bool "Tuxera compatibility for sdFAT"
+	default n
+	depends on SDFAT_USE_FOR_EXFAT
+	help
+	  Say Y here for the exFAT driver to register as texfat and
+	  to support extra mount options for drop-in replacement on
+	  systems previously using Tuxera's commercial exFAT driver.
+
+	  If you are building exFAT as a module, this will change
+	  the module's name to texfat.
+
 config SDFAT_USE_FOR_VFAT
 	bool "Register sdFAT as VFAT"
 	default y

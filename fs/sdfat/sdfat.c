@@ -5199,9 +5199,15 @@ static struct file_system_type sdfat_fs_type = {
 MODULE_ALIAS_FS("sdfat");
 
 #ifdef CONFIG_SDFAT_USE_FOR_EXFAT
+#ifdef CONFIG_SDFAT_COMPAT_TUXERA
+static struct file_system_type texfat_fs_type = {
+	.owner       = THIS_MODULE,
+	.name        = "texfat",
+#else
 static struct file_system_type exfat_fs_type = {
 	.owner       = THIS_MODULE,
 	.name        = "exfat",
+#endif
 	.mount       = sdfat_fs_mount,
 #ifdef CONFIG_SDFAT_DBG_IOCTL
 	.kill_sb    = sdfat_debug_kill_sb,
@@ -5210,7 +5216,11 @@ static struct file_system_type exfat_fs_type = {
 #endif /* CONFIG_SDFAT_DBG_IOCTL */
 	.fs_flags    = FS_REQUIRES_DEV,
 };
+#ifdef CONFIG_SDFAT_COMPAT_TUXERA
+MODULE_ALIAS_FS("texfat");
+#else
 MODULE_ALIAS_FS("exfat");
+#endif
 #endif /* CONFIG_SDFAT_USE_FOR_EXFAT */
 
 #ifdef CONFIG_SDFAT_USE_FOR_VFAT
@@ -5271,7 +5281,11 @@ static int __init init_sdfat_fs(void)
 	}
 
 #ifdef CONFIG_SDFAT_USE_FOR_EXFAT
+#ifdef CONFIG_SDFAT_COMPAT_TUXERA
+	err = register_filesystem(&texfat_fs_type);
+#else
 	err = register_filesystem(&exfat_fs_type);
+#endif
 	if (err) {
 		pr_err("[SDFAT] failed to register for exfat filesystem\n");
 		goto error;
@@ -5325,7 +5339,11 @@ static void __exit exit_sdfat_fs(void)
 	sdfat_destroy_inodecache();
 	unregister_filesystem(&sdfat_fs_type);
 #ifdef CONFIG_SDFAT_USE_FOR_EXFAT
+#ifdef CONFIG_SDFAT_COMPAT_TUXERA
+	unregister_filesystem(&texfat_fs_type);
+#else
 	unregister_filesystem(&exfat_fs_type);
+#endif
 #endif /* CONFIG_SDFAT_USE_FOR_EXFAT */
 #ifdef CONFIG_SDFAT_USE_FOR_VFAT
 	unregister_filesystem(&vfat_fs_type);
