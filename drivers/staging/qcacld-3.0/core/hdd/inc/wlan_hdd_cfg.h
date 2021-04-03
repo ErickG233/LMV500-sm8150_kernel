@@ -8969,8 +8969,11 @@ enum hdd_link_speed_rpt_type {
 #define CFG_SAP_11AC_OVERRIDE_NAME             "gSAP11ACOverride"
 #define CFG_SAP_11AC_OVERRIDE_MIN              (0)
 #define CFG_SAP_11AC_OVERRIDE_MAX              (1)
+#ifdef FEATURE_SUPPORT_LGE
+#define CFG_SAP_11AC_OVERRIDE_DEFAULT          (1)
+#else
 #define CFG_SAP_11AC_OVERRIDE_DEFAULT          (0)
-
+#endif
 /*
  * <ini>
  * gGO11ACOverride - Override bw to 11ac for P2P GO
@@ -11790,8 +11793,11 @@ enum hdd_wext_control {
 #define CFG_PRIVATE_WEXT_CONTROL_NAME           "private_wext_control"
 #define CFG_PRIVATE_WEXT_CONTROL_MIN            (hdd_wext_disabled)
 #define CFG_PRIVATE_WEXT_CONTROL_MAX            (hdd_wext_enabled)
+#ifdef FEATURE_SUPPORT_LGE
+#define CFG_PRIVATE_WEXT_CONTROL_DEFAULT        (hdd_wext_enabled)
+#else
 #define CFG_PRIVATE_WEXT_CONTROL_DEFAULT        (hdd_wext_deprecated)
-
+#endif
 /*
  * <ini>
  * gper_roam_mon_time - Minimum time required in seconds to
