@@ -1875,7 +1875,6 @@ static int wcd_mbhc_init_gpio(struct wcd_mbhc *mbhc,
 
 	return rc;
 }
-#endif
 
 static int wcd_mbhc_usb_c_analog_setup_gpios(struct wcd_mbhc *mbhc, bool active)
 {
@@ -1934,7 +1933,6 @@ static int wcd_mbhc_usb_c_analog_setup_gpios(struct wcd_mbhc *mbhc, bool active)
 	return rc;
 }
 
-
 /* workqueue */
 static void wcd_mbhc_usbc_analog_work_fn(struct work_struct *work)
 {
@@ -1991,7 +1989,6 @@ static int wcd_mbhc_usb_c_event_changed(struct notifier_block *nb,
 	return ret;
 }
 
-#ifdef CONFIG_QCOM_FSA4480_I2C
 /* PMI registration code */
 static int wcd_mbhc_usb_c_analog_init(struct wcd_mbhc *mbhc)
 {
