@@ -908,15 +908,6 @@ int acc_ctrlrequest(struct usb_composite_dev *cdev,
 	 */
 	if (!dev)
 		return -ENODEV;
-<<<<<<< HEAD
-/*
-	printk(KERN_INFO "acc_ctrlrequest "
-			"%02x.%02x v%04x i%04x l%u\n",
-			b_requestType, b_request,
-			w_value, w_index, w_length);
-*/
-=======
->>>>>>> d3725be6c586d83e28d2f05e14de3b6df7a5c721
 
 #ifdef CONFIG_LGE_USB_GADGET
 	if (!dev) {

@@ -391,12 +391,6 @@ int dp_connector_get_mode_info(struct drm_connector *connector,
 
 	topology = &mode_info->topology;
 
-	if (max_mixer_width <= drm_mode->hdisplay ||
-		max_mixer_width <= drm_mode->vdisplay)
-		topology->num_lm = dual_lm;
-	else
-		topology->num_lm = single_lm;
-
 	rc = msm_get_mixer_count(priv, drm_mode, max_mixer_width,
 			&topology->num_lm);
 	if (rc) {

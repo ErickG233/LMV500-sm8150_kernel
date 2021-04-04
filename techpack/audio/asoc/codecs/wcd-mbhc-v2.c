@@ -1848,6 +1848,7 @@ static int wcd_mbhc_usbc_ana_event_handler(struct notifier_block *nb,
 	return 0;
 }
 
+#ifdef CONFIG_QCOM_FSA4480_I2C
 static int wcd_mbhc_init_gpio(struct wcd_mbhc *mbhc,
 				struct wcd_mbhc_config *mbhc_cfg,
 				const char *gpio_dt_str,
@@ -1874,6 +1875,7 @@ static int wcd_mbhc_init_gpio(struct wcd_mbhc *mbhc,
 
 	return rc;
 }
+#endif
 
 static int wcd_mbhc_usb_c_analog_setup_gpios(struct wcd_mbhc *mbhc, bool active)
 {
@@ -1989,6 +1991,7 @@ static int wcd_mbhc_usb_c_event_changed(struct notifier_block *nb,
 	return ret;
 }
 
+#ifdef CONFIG_QCOM_FSA4480_I2C
 /* PMI registration code */
 static int wcd_mbhc_usb_c_analog_init(struct wcd_mbhc *mbhc)
 {
@@ -2046,6 +2049,7 @@ static int wcd_mbhc_usb_c_analog_deinit(struct wcd_mbhc *mbhc)
 	power_supply_unreg_notifier(&mbhc->psy_nb);
 	return 0;
 }
+#endif
 
 int wcd_mbhc_start(struct wcd_mbhc *mbhc, struct wcd_mbhc_config *mbhc_cfg)
 {
@@ -2142,7 +2146,9 @@ int wcd_mbhc_start(struct wcd_mbhc *mbhc, struct wcd_mbhc_config *mbhc_cfg)
 		if (rc) {
 			dev_err(card->dev, "%s: wcd mbhc initialize failed\n",
 				__func__);
+#ifdef CONFIG_QCOM_FSA4480_I2C
 			wcd_mbhc_usb_c_analog_deinit(mbhc);
+#endif
 			goto err;
 		}
 	} else {

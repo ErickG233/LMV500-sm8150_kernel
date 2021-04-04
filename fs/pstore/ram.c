@@ -832,7 +832,6 @@ static int ramoops_probe(struct platform_device *pdev)
 		goto fail_init_mprz;
 
 	cxt->pstore.data = cxt;
-<<<<<<< HEAD
 	/*
 	 * Prepare frontend flags based on which areas are initialized.
 	 * For ramoops_init_przs() cases, the "max count" variable tells

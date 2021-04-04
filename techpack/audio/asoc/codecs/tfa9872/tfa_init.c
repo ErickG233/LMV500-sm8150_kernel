@@ -94,58 +94,60 @@ static enum tfa98xx_error tfa9891_specific(tfa98xx_handle_t handle)
 
 static enum tfa98xx_error tfa9896_specific(tfa98xx_handle_t handle)
 {
-        enum tfa98xx_error error = TFA98XX_ERROR_OK;
-        unsigned short check_value;
+	enum tfa98xx_error error = TFA98XX_ERROR_OK;
+	unsigned short check_value;
 
-        if (!tfa98xx_handle_is_open(handle))
-                return TFA98XX_ERROR_NOT_OPEN;
+	if (!tfa98xx_handle_is_open(handle))
+		return TFA98XX_ERROR_NOT_OPEN;
 
-        /* all i2C registers must already set to default POR value */
+	/* all i2C registers must already set to default POR value */
 
-        /* $48:[3] - 1 ==> 0; iddqtestbst - default value changed.
-         * When Iddqtestbst is set to "0", the slewrate is reduced.
-         * This will lower the overshoot on IN-B to avoid NMOS damage of booster.
-         */
-		/* ----- generated code start ----- */
-		/*v17*/
-		reg_write(handle, 0x06, 0x000b); //POR=0x0001
-		reg_write(handle, 0x07, 0x3e7f); //POR=0x1e7f
-		reg_write(handle, 0x0a, 0x0d8a); //POR=0x0592
-		reg_write(handle, 0x48, 0x0300); //POR=0x0308
-		reg_write(handle, 0x88, 0x0100); //POR=0x0000
-		/* ----- generated code end   ----- */
-        /* $49:[0] - 1 ==> 0; CLIP - default value changed. 0 means CLIPPER on
-         */
-        error = reg_read(handle, 0x49, &check_value);
-        check_value &= ~0x1;
-        error = reg_write(handle, 0x49, check_value);
+	/* $48:[3] - 1 ==> 0; iddqtestbst - default value changed.
+	 * When Iddqtestbst is set to "0", the slewrate is reduced.
+	 * This will lower the overshoot on IN-B to avoid NMOS damage of booster.
+	 */
 
-        return error;
+	/* ----- generated code start ----- */
+	/*v17*/
+	reg_write(handle, 0x06, 0x000b); //POR=0x0001
+	reg_write(handle, 0x07, 0x3e7f); //POR=0x1e7f
+	reg_write(handle, 0x0a, 0x0d8a); //POR=0x0592
+	reg_write(handle, 0x48, 0x0300); //POR=0x0308
+	reg_write(handle, 0x88, 0x0100); //POR=0x0000
+	/* ----- generated code end   ----- */
+
+	/* $49:[0] - 1 ==> 0; CLIP - default value changed. 0 means CLIPPER on
+	 */
+	error = reg_read(handle, 0x49, &check_value);
+	check_value &= ~0x1;
+	error = reg_write(handle, 0x49, check_value);
+
+	return error;
 }
 
 static enum tfa98xx_error tfa9897_specific(tfa98xx_handle_t handle)
 {
-        enum tfa98xx_error error = TFA98XX_ERROR_OK;
-        unsigned short check_value;
+	enum tfa98xx_error error = TFA98XX_ERROR_OK;
+	unsigned short check_value;
 
-        if (!tfa98xx_handle_is_open(handle))
-                return TFA98XX_ERROR_NOT_OPEN;
+	if (!tfa98xx_handle_is_open(handle))
+		return TFA98XX_ERROR_NOT_OPEN;
 
-        /* all i2C registers must already set to default POR value */
+	/* all i2C registers must already set to default POR value */
 
-        /* $48:[3] - 1 ==> 0; iddqtestbst - default value changed.
-         * When Iddqtestbst is set to "0", the slewrate is reduced.
-         * This will lower the overshoot on IN-B to avoid NMOS damage of booster.
-         */
-        error = reg_write(handle, 0x48, 0x0300); /* POR value = 0x308 */
+	/* $48:[3] - 1 ==> 0; iddqtestbst - default value changed.
+	 * When Iddqtestbst is set to "0", the slewrate is reduced.
+	 * This will lower the overshoot on IN-B to avoid NMOS damage of booster.
+	 */
+	error = reg_write(handle, 0x48, 0x0300); /* POR value = 0x308 */
 
-        /* $49:[0] - 1 ==> 0; CLIP - default value changed. 0 means CLIPPER on
-         */
-        error = reg_read(handle, 0x49, &check_value);
-        check_value &= ~0x1;
-        error = reg_write(handle, 0x49, check_value);
+	/* $49:[0] - 1 ==> 0; CLIP - default value changed. 0 means CLIPPER on
+	 */
+	error = reg_read(handle, 0x49, &check_value);
+	check_value &= ~0x1;
+	error = reg_write(handle, 0x49, check_value);
 
-        return error;
+	return error;
 }
 
 static enum tfa98xx_error tfa9888_specific(tfa98xx_handle_t handle)
@@ -507,15 +509,15 @@ static enum tfa98xx_error tfa9890_dsp_reset(tfa98xx_handle_t handle, int state)
  * the int24 values for the vsfw delay table
  */
 static unsigned char vsfwdelay_table[] = {
-        0,0,2, /*Index 0 - Current/Volt Fractional Delay for 8KHz  */
-        0,0,0, /*Index 1 - Current/Volt Fractional Delay for 11KHz */
-        0,0,0, /*Index 2 - Current/Volt Fractional Delay for 12KHz */
-        0,0,2, /*Index 3 - Current/Volt Fractional Delay for 16KHz */
-        0,0,2, /*Index 4 - Current/Volt Fractional Delay for 22KHz */
-        0,0,2, /*Index 5 - Current/Volt Fractional Delay for 24KHz */
-        0,0,2, /*Index 6 - Current/Volt Fractional Delay for 32KHz */
-        0,0,2, /*Index 7 - Current/Volt Fractional Delay for 44KHz */
-        0,0,3 /*Index 8 - Current/Volt Fractional Delay for 48KHz */
+	0,0,2, /*Index 0 - Current/Volt Fractional Delay for 8KHz  */
+	0,0,0, /*Index 1 - Current/Volt Fractional Delay for 11KHz */
+	0,0,0, /*Index 2 - Current/Volt Fractional Delay for 12KHz */
+	0,0,2, /*Index 3 - Current/Volt Fractional Delay for 16KHz */
+	0,0,2, /*Index 4 - Current/Volt Fractional Delay for 22KHz */
+	0,0,2, /*Index 5 - Current/Volt Fractional Delay for 24KHz */
+	0,0,2, /*Index 6 - Current/Volt Fractional Delay for 32KHz */
+	0,0,2, /*Index 7 - Current/Volt Fractional Delay for 44KHz */
+	0,0,3 /*Index 8 - Current/Volt Fractional Delay for 48KHz */
 };
 
 /*
@@ -527,11 +529,11 @@ static enum tfa98xx_error
 tfa9896_dsp_write_vsfwdelay_table(tfa98xx_handle_t handle)
 {
 	enum tfa98xx_error error;
-        error = tfa_dsp_cmd_id_write(handle, MODULE_FRAMEWORK,
-        		             TFA1_FW_PAR_ID_SET_CURRENT_DELAY,
-        		             sizeof(vsfwdelay_table),
-		    		     vsfwdelay_table);
-        return error;
+	error = tfa_dsp_cmd_id_write(handle, MODULE_FRAMEWORK,
+					TFA1_FW_PAR_ID_SET_CURRENT_DELAY,
+					sizeof(vsfwdelay_table),
+					vsfwdelay_table);
+	return error;
 }
 
 /*
@@ -539,15 +541,15 @@ tfa9896_dsp_write_vsfwdelay_table(tfa98xx_handle_t handle)
  * For now applicable only for 8 and 48 kHz
  */
 static unsigned char cvfracdelay_table[] ={
-        0,0,51, /*Index 0 - Current/Volt Fractional Delay for 8KHz  */
-        0,0, 0, /*Index 1 - Current/Volt Fractional Delay for 11KHz */
-        0,0, 0, /*Index 2 - Current/Volt Fractional Delay for 12KHz */
-        0,0,38, /*Index 3 - Current/Volt Fractional Delay for 16KHz */
-        0,0,34, /*Index 4 - Current/Volt Fractional Delay for 22KHz */
-        0,0,33, /*Index 5 - Current/Volt Fractional Delay for 24KHz */
-        0,0,11, /*Index 6 - Current/Volt Fractional Delay for 32KHz */
-        0,0,2, /*Index 7 - Current/Volt Fractional Delay for 44KHz */
-        0,0,62 /*Index 8 - Current/Volt Fractional Delay for 48KHz */
+	0,0,51, /*Index 0 - Current/Volt Fractional Delay for 8KHz  */
+	0,0, 0, /*Index 1 - Current/Volt Fractional Delay for 11KHz */
+	0,0, 0, /*Index 2 - Current/Volt Fractional Delay for 12KHz */
+	0,0,38, /*Index 3 - Current/Volt Fractional Delay for 16KHz */
+	0,0,34, /*Index 4 - Current/Volt Fractional Delay for 22KHz */
+	0,0,33, /*Index 5 - Current/Volt Fractional Delay for 24KHz */
+	0,0,11, /*Index 6 - Current/Volt Fractional Delay for 32KHz */
+	0,0,2, /*Index 7 - Current/Volt Fractional Delay for 44KHz */
+	0,0,62 /*Index 8 - Current/Volt Fractional Delay for 48KHz */
 };
 
 enum tfa98xx_error tfa9896_dsp_write_cvfracdelay_table(tfa98xx_handle_t handle)
@@ -613,15 +615,15 @@ tfa9896_tfa_set_boost_trip_level(tfa98xx_handle_t handle, int Re25C)
  * the int24 values for the vsfw delay table
  */
 static unsigned char tfa9897_vsfwdelay_table[] = {
-        0,0,2, /*Index 0 - Current/Volt Fractional Delay for 8KHz  */
-        0,0,0, /*Index 1 - Current/Volt Fractional Delay for 11KHz */
-        0,0,0, /*Index 2 - Current/Volt Fractional Delay for 12KHz */
-        0,0,2, /*Index 3 - Current/Volt Fractional Delay for 16KHz */
-        0,0,2, /*Index 4 - Current/Volt Fractional Delay for 22KHz */
-        0,0,2, /*Index 5 - Current/Volt Fractional Delay for 24KHz */
-        0,0,2, /*Index 6 - Current/Volt Fractional Delay for 32KHz */
-        0,0,2, /*Index 7 - Current/Volt Fractional Delay for 44KHz */
-        0,0,3 /*Index 8 - Current/Volt Fractional Delay for 48KHz */
+	0,0,2, /*Index 0 - Current/Volt Fractional Delay for 8KHz  */
+	0,0,0, /*Index 1 - Current/Volt Fractional Delay for 11KHz */
+	0,0,0, /*Index 2 - Current/Volt Fractional Delay for 12KHz */
+	0,0,2, /*Index 3 - Current/Volt Fractional Delay for 16KHz */
+	0,0,2, /*Index 4 - Current/Volt Fractional Delay for 22KHz */
+	0,0,2, /*Index 5 - Current/Volt Fractional Delay for 24KHz */
+	0,0,2, /*Index 6 - Current/Volt Fractional Delay for 32KHz */
+	0,0,2, /*Index 7 - Current/Volt Fractional Delay for 44KHz */
+	0,0,3 /*Index 8 - Current/Volt Fractional Delay for 48KHz */
 };
 
 /*
@@ -634,11 +636,11 @@ tfa9897_dsp_write_vsfwdelay_table(tfa98xx_handle_t handle)
 {
 	enum tfa98xx_error error;
 
-        error = tfa_dsp_cmd_id_write(handle, MODULE_FRAMEWORK,
-        		             TFA1_FW_PAR_ID_SET_CURRENT_DELAY,
-        		             sizeof(tfa9897_vsfwdelay_table),
-		    		     tfa9897_vsfwdelay_table);
-        return error;
+	error = tfa_dsp_cmd_id_write(handle, MODULE_FRAMEWORK,
+					TFA1_FW_PAR_ID_SET_CURRENT_DELAY,
+					sizeof(tfa9897_vsfwdelay_table),
+					tfa9897_vsfwdelay_table);
+	return error;
 }
 
 /*
@@ -646,15 +648,15 @@ tfa9897_dsp_write_vsfwdelay_table(tfa98xx_handle_t handle)
  * For now applicable only for 8 and 48 kHz
  */
 static unsigned char tfa9897_cvfracdelay_table[] ={
-        0,0,51, /*Index 0 - Current/Volt Fractional Delay for 8KHz  */
-        0,0, 0, /*Index 1 - Current/Volt Fractional Delay for 11KHz */
-        0,0, 0, /*Index 2 - Current/Volt Fractional Delay for 12KHz */
-        0,0,38, /*Index 3 - Current/Volt Fractional Delay for 16KHz */
-        0,0,34, /*Index 4 - Current/Volt Fractional Delay for 22KHz */
-        0,0,33, /*Index 5 - Current/Volt Fractional Delay for 24KHz */
-        0,0,11, /*Index 6 - Current/Volt Fractional Delay for 32KHz */
-        0,0,2, /*Index 7 - Current/Volt Fractional Delay for 44KHz */
-        0,0,62 /*Index 8 - Current/Volt Fractional Delay for 48KHz */
+	0,0,51, /*Index 0 - Current/Volt Fractional Delay for 8KHz  */
+	0,0, 0, /*Index 1 - Current/Volt Fractional Delay for 11KHz */
+	0,0, 0, /*Index 2 - Current/Volt Fractional Delay for 12KHz */
+	0,0,38, /*Index 3 - Current/Volt Fractional Delay for 16KHz */
+	0,0,34, /*Index 4 - Current/Volt Fractional Delay for 22KHz */
+	0,0,33, /*Index 5 - Current/Volt Fractional Delay for 24KHz */
+	0,0,11, /*Index 6 - Current/Volt Fractional Delay for 32KHz */
+	0,0,2, /*Index 7 - Current/Volt Fractional Delay for 44KHz */
+	0,0,62 /*Index 8 - Current/Volt Fractional Delay for 48KHz */
 };
 
 enum tfa98xx_error
@@ -662,11 +664,11 @@ tfa9897_dsp_write_cvfracdelay_table(tfa98xx_handle_t handle)
 {
 	enum tfa98xx_error error;
 
-        error = tfa_dsp_cmd_id_write(handle, MODULE_FRAMEWORK,
-        		             TFA1_FW_PAR_ID_SET_CURFRAC_DELAY,
-        		             sizeof(tfa9897_cvfracdelay_table),
-		    		     tfa9897_cvfracdelay_table);
-        return error;
+	error = tfa_dsp_cmd_id_write(handle, MODULE_FRAMEWORK,
+					TFA1_FW_PAR_ID_SET_CURFRAC_DELAY,
+					sizeof(tfa9897_cvfracdelay_table),
+					tfa9897_cvfracdelay_table);
+	return error;
 }
 
 static enum tfa98xx_error
@@ -723,11 +725,11 @@ tfa9888_tfa_dsp_write_tables(tfa98xx_handle_t handle, int sample_rate)
 	}
 
 	/* First copy the msg_id to the buffer */
-        buffer[0] = (uint8_t) 0;
-        buffer[1] = (uint8_t) MODULE_FRAMEWORK + 128;
-        buffer[2] = (uint8_t) FW_PAR_ID_SET_SENSES_DELAY;
+	buffer[0] = (uint8_t) 0;
+	buffer[1] = (uint8_t) MODULE_FRAMEWORK + 128;
+	buffer[2] = (uint8_t) FW_PAR_ID_SET_SENSES_DELAY;
 
-        /* Required for all FS exept 8kHz (8kHz is all zero) */
+	/* Required for all FS exept 8kHz (8kHz is all zero) */
 	if(sample_rate != 0) {
 		buffer[5] = 1;	/* Vdelay_P */
 		buffer[8] = 0;	/* Idelay_P */
