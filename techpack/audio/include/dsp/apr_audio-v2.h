@@ -5487,6 +5487,14 @@ struct asm_softvolume_params {
 #define PCM_FORMAT_MAX_NUM_CHANNEL  8
 #define PCM_FORMAT_MAX_CHANNELS_9   9
 
+#if defined(CONFIG_SND_LGE_MABL) || defined(CONFIG_SND_LGE_DTS)
+#define ASM_STREAM_POSTPROC_TOPO_ID_DEFAULT_LGE 0x10009009
+#define ASM_STREAM_POSTPROC_TOPO_ID_OFFLOAD_LGE 0x10009010
+#endif
+#if defined(CONFIG_SND_LGE_STEREO_SPEAKER)
+#define AUDIO_NONE_POPP_LGE 0x10009008
+#endif
+
 /* Used for ADM_CMD_DEVICE_OPEN_V8 */
 #define PCM_FORMAT_MAX_NUM_CHANNEL_V8  32
 
@@ -11381,7 +11389,7 @@ struct afe_clk_set {
 	 * for enable and disable clock.
 	 *	"clk_freq_in_hz", "clk_attri", and "clk_root"
 	 *	are ignored in disable clock case.
-	 *	@values 
+	 *	@values
 	 *	- 0 -- Disabled
 	 *	- 1 -- Enabled  @tablebulletend
 	 */

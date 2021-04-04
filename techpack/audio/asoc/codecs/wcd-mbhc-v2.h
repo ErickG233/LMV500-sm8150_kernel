@@ -17,6 +17,8 @@
 #include <linux/power_supply.h>
 #include "wcdcal-hwdep.h"
 #include <sound/jack.h>
+#include <linux/extcon.h>
+#include "../../../../drivers/extcon/extcon.h"
 
 #define TOMBAK_MBHC_NC	0
 #define TOMBAK_MBHC_NO	1
@@ -618,6 +620,14 @@ struct wcd_mbhc {
 	struct notifier_block psy_nb;
 	struct power_supply *usb_psy;
 	struct work_struct usbc_analog_work;
+#ifdef CONFIG_MACH_LGE
+	struct extcon_dev *edev;
+	char edev_name[15];
+	bool LGE_HIGH_HPH_HEADSET;
+#if defined(CONFIG_SND_LGE_VOC_MUTE_DET)
+	struct extcon_dev* edev_voc_mute;
+#endif /* CONFIG_SND_LGE_VOC_MUTE_DET */
+#endif
 };
 
 void wcd_mbhc_find_plug_and_report(struct wcd_mbhc *mbhc,
