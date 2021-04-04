@@ -562,6 +562,7 @@ struct bias_config id_table[3] = {
 	{0x75, 0x76, 30},
 };
 
+#ifndef CONFIG_LGE_PM
 #define BID_VREF_MV	1875
 static int fg_get_batt_id_adc(struct fg_gen4_chip *chip, u32 *batt_id_ohms)
 {
@@ -593,6 +594,7 @@ static int fg_get_batt_id_adc(struct fg_gen4_chip *chip, u32 *batt_id_ohms)
 
 	return 0;
 }
+#endif
 
 #ifdef CONFIG_LGE_PM
 /* =============================================
